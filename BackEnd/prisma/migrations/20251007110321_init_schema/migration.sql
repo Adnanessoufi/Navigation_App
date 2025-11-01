@@ -1,0 +1,10 @@
+-- CreateTable
+CREATE TABLE "Place" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "lat" DOUBLE PRECISION NOT NULL,
+    "lng" DOUBLE PRECISION NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Place_pkey" PRIMARY KEY ("id")
+);

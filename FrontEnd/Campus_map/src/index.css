@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@layer base {
+  html, body, #root {
+    @apply h-full w-full;
+  }
+}
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+a {
+  font-weight: 500;
+}
+
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+button {
+  cursor: pointer;
+}
+
