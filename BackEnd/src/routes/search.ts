@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma";
-import requireAuth from "./authRouters";
+import requireAuth from "../middleware/authRouter";
+
 
 const router = Router();
 
@@ -8,16 +9,23 @@ function escapeRx(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-router.post("/", requireAuth, async (req, res) => {
+router.post("/",requireAuth, async (req, res) => {
   try {
     const { name, abbr, type, lat, lng } = req.body || {};
     if (!name || typeof lat !== "number" || typeof lng !== "number") {
       return res.status(400).json({ error: "name, lat, lng are required" });
     }
+    if (!req.userId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    const isAdmin = req.userRole === "ADMIN";
 
     const place = await prisma.place.create({
-      data: { name, abbr: abbr || null, type: type || null, lat, lng },
-      select: { id: true, name: true, abbr: true, type: true, lat: true, lng: true },
+      data: { name, abbr: abbr || null, type: type || null, lat, lng,createdById: req.userId,
+        status: isAdmin ? "APPROVED" : "PENDING", approvedById: isAdmin ? req.userId : null,
+        approvedAt:   isAdmin ? new Date() : null,
+       },
+      select: { id: true, name: true, abbr: true, type: true, lat: true, lng: true, status: true },
     });
 
     res.status(201).json(place);
@@ -29,37 +37,47 @@ router.post("/", requireAuth, async (req, res) => {
 
 router.get("/", async (req, res) => {
   try {
-    const qRaw = ((req.query.q as string) || "").trim();   
+    const qRaw = ((req.query.q as string) || "").trim();
     if (!qRaw) return res.json({ q: qRaw, count: 0, results: [] });
 
     const q = qRaw.toLowerCase();
 
     const prelim = await prisma.place.findMany({
       where: {
+        status: "APPROVED", 
         OR: [
           { name: { contains: q, mode: "insensitive" } },
           { abbr: { contains: q, mode: "insensitive" } },
         ],
       },
       orderBy: { name: "asc" },
+      select: { id: true, name: true, abbr: true, type: true, lat: true, lng: true },
     });
 
-    const token = escapeRx(qRaw);
-    const rx = new RegExp(`(^|[^A-Za-z0-9])${token}([^A-Za-z0-9]|$)`, "i");
+    function score(p: { name: string | null; abbr: string | null }) {
+      const name = (p.name ?? "").toLowerCase();
+      const abbr = (p.abbr ?? "").toLowerCase();
 
-    const results = prelim.filter(
-      (p) => rx.test(p.name ?? "") || rx.test(p.abbr ?? "")
-    );
+      let s = 0;
 
-    const exacts = prelim.filter(
-      (p) =>
-        (p.abbr ?? "").toLowerCase() === q ||
-        (p.abbr ?? "").toLowerCase() === `ik-${q.toUpperCase()}`.toLowerCase()
-    );
+      if (abbr === q) s += 100;
+      if (`ik-${abbr}` === q) s += 95;
 
-    const finalResults = [...exacts, ...results].filter(
-      (p, i, arr) => arr.findIndex(x => x.id === p.id) === i
-    );
+      if (name.startsWith(q)) s += 80;
+      if (abbr.startsWith(q)) s += 70;
+
+      if (name.includes(q)) s += 50;
+      if (abbr.includes(q)) s += 40;
+
+      return s;
+    }
+
+    const ranked = prelim
+      .map(p => ({ ...p, _score: score(p) }))
+      .sort((a, b) => (b._score - a._score) || a.name.localeCompare(b.name))
+      .map(({ _score, ...p }) => p);
+
+    const finalResults = ranked.filter((p, i, arr) => arr.findIndex(x => x.id === p.id) === i);
 
     res.json({ q: qRaw, count: finalResults.length, results: finalResults });
   } catch (error) {
@@ -67,5 +85,6 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 export default router;

@@ -13,6 +13,7 @@ router.get("/", async (req, res) => {
   try {
     const results = await prisma.place.findMany({
       where: {
+        status: "APPROVED",
         OR: [
           { name: { contains: qRaw, mode: "insensitive" } },
           { abbr: { contains: qRaw, mode: "insensitive" } },

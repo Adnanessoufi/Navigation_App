@@ -3,6 +3,7 @@ import { prisma } from "../lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt, { SignOptions } from "jsonwebtoken";
 import cookieParser from "cookie-parser";
+import requireAuth from "../middleware/authRouter";
 
 const router = express.Router();
 
@@ -35,19 +36,6 @@ function clearAuthCookie(res: Response) {
     sameSite: "lax",
     path: "/",
   });
-}
-
-function requireAuth(req: AuthRequest, res: Response, next: NextFunction) {
-  const token = req.cookies[COOKIE_NAME];
-  if (!token) return res.status(401).json({ message: "Not authenticated" });
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { uid: string };
-    req.userId = decoded.uid;
-    next();
-  } catch {
-    return res.status(401).json({ message: "Invalid or expired token" });
-  }
 }
 
 router.post("/register", async (req: Request, res: Response) => {
@@ -139,7 +127,7 @@ router.post("/login", async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Invalid password" });
     }
 
-    const token = jwt.sign({ uid: user.id }, JWT_SECRET, {
+    const token = jwt.sign({ uid: user.id, role: user.role }, JWT_SECRET, {
       expiresIn: JWT_EXPIRES,
     });
     setAuthCookie(res, token);

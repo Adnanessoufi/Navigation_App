@@ -14,23 +14,52 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
+enum PlaceStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
 
 model Place {
-  id String @id @default(uuid())
-  name String
-  lat Float
-  lng Float
-  abbr String?
-  type String?
-  favoredBy  Favorite[]
+  id           String       @id @default(uuid())
+  name         String
+  lat          Float
+  lng          Float
+  abbr         String?
+  type         String?
+  favoredBy    Favorite[]
+
+  // TEMP: treat existing rows as approved
+  status       PlaceStatus  @default(APPROVED)
+
+  // TEMP: nullable so migration can succeed
+  createdById  String
+  createdBy    User?        @relation("PlacesCreated", fields: [createdById], references: [id])
+
+  approvedById String?
+  approvedBy   User?        @relation("PlacesApproved", fields: [approvedById], references: [id])
+  approvedAt   DateTime?
+
+  @@index([status])
+  @@index([createdById])
+  @@index([approvedById])
 }
+
 
 model User {
   id String @id @default(uuid())
-  name String @unique
+  name String 
   email String @unique
   passwordHash String
   favorites  Favorite[]
+  role   Role  @default(USER) 
+  placesCreated   Place[]        @relation("PlacesCreated")
+  placesApproved Place[] @relation("PlacesApproved")
 }
 
 model Favorite {

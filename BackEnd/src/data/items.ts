@@ -1,10 +1,9 @@
 type Item = {
   name: string;
-  abbr?: string;        // optional abbreviation
+  abbr?: string;
   type?: string;  
   lat : number;
   lng : number;
-  // only set if it's a library
 };
 
 const items : Item[] = [
@@ -17,7 +16,7 @@ const items : Item[] = [
   {name: "Informatik kar", abbr: "IK", lat: 47.54235887184139, lng: 21.63992259672122},
   {name: "Veres Péter Kollégium", abbr: "Veres Peter", type:"Dormitory", lat:47.55067393296942, lng:21.608648537188003 },
   {name: "Sports Dormitory Kollegium DEAC", abbr:"Sport Dormitory",lat : 47.557285498617304,lng: 21.61634705720212 },
-  // IK BUILDING
+
   {name: "Informatik kar", abbr: "IK", lat: 47.54235887184139, lng: 21.63992259672122},
   {name: "IK Building, room F0 (Ground Floor)", abbr: "IK-F0", lat: 47.54235887184139, lng: 21.63992259672122},
   {name: "IK Building, room F01 (Ground Floor)", abbr: "IK-F01", lat: 47.54235887184139, lng: 21.63992259672122},
@@ -51,8 +50,6 @@ const items : Item[] = [
   {name: "IK Building, room 311 (3rd Floor)", abbr: "IK-311", lat: 47.54235887184139, lng: 21.63992259672122},
   {name: "IK Building, room 321 (3rd Floor)", abbr: "IK-321", lat: 47.54235887184139, lng: 21.63992259672122},
 
-
-  // TEOKJ BUILDING (already correctly formatted)
   {name: "TEOKJ Building, room 108 Ground Floor (IV.ea.)", abbr: "IK-TEOKJ fszt. 108. (IV.ea.)", lat: 47.54470026620749, lng: 21.64101309265243},
   {name: "TEOKJ Building, room 106 (2nd Floor)", abbr: "IK-TEOKJ II. em. 106", lat: 47.54470026620749, lng: 21.64101309265243},
   {name: "TEOKJ Building, room 107 (2nd Floor)", abbr: "IK-TEOKJ II. em. 107", lat: 47.54470026620749, lng: 21.64101309265243},

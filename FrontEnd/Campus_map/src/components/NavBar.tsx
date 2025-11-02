@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, Link } from "react-router-dom";
 import handleLogout from "./Logout";
+import { useMe } from "../hooks/useMe";
 
 type NavBarProps = {
   isLogin: boolean;
@@ -8,6 +9,7 @@ type NavBarProps = {
 
 export default function NavBar({ isLogin }: NavBarProps) {
   const [open, setOpen] = useState<boolean>(false);
+  const { me, isAdmin, loading } = useMe(isLogin);
 
   const linkClasses =
     "px-3 py-2 rounded-md text-sm font-medium hover:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400";
@@ -25,8 +27,6 @@ export default function NavBar({ isLogin }: NavBarProps) {
             Search
           </Link>
 
-  
-
           {/* Mobile menu button */}
           <button
             className="md:hidden inline-flex items-center justify-center p-2 rounded hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -34,7 +34,6 @@ export default function NavBar({ isLogin }: NavBarProps) {
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
           >
-            {/* simple hamburger */}
             <span className="block h-0.5 w-5 bg-current mb-1.5" />
             <span className="block h-0.5 w-5 bg-current mb-1.5" />
             <span className="block h-0.5 w-5 bg-current" />
@@ -42,9 +41,40 @@ export default function NavBar({ isLogin }: NavBarProps) {
 
           {/* Right: Links (desktop) */}
           <ul className="hidden md:flex items-center gap-2">
-            
+            {/* Admin link + badge (only for admins) */}
+            {!loading && isLogin && isAdmin && (
+              <>
+                <li>
+                  <NavLink
+                    to="/admin/pending"
+                    className={({ isActive }) =>
+                      `${linkClasses} ${isActive ? activeClasses : ""}`
+                    }
+                  >
+                    Places
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/admin/users" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ""}`}>
+                    Users
+                  </NavLink>
+                </li>
+                
+              </>
+            )}
+
             {isLogin ? (
               <>
+                <li>
+                  <NavLink
+                    to="/places/new"
+                    className={({ isActive }) =>
+                      `${linkClasses} ${isActive ? activeClasses : ""}`
+                    }
+                  >
+                    Add Place
+                  </NavLink>
+                </li>
                 <li>
                   <NavLink
                     to="/profile"
@@ -52,12 +82,11 @@ export default function NavBar({ isLogin }: NavBarProps) {
                       `${linkClasses} ${isActive ? activeClasses : ""}`
                     }
                   >
-                    Profile
+                    {me?.name || me?.email || "Profile"}
                   </NavLink>
                 </li>
                 <li>
-                  <button onClick={handleLogout}
-                    className={linkClasses}>
+                  <button onClick={handleLogout} className={linkClasses}>
                     Logout
                   </button>
                 </li>
@@ -88,13 +117,45 @@ export default function NavBar({ isLogin }: NavBarProps) {
             )}
           </ul>
         </div>
-            
 
         {/* Mobile dropdown */}
         {open && (
           <ul className="md:hidden pb-3 space-y-1">
+            {/* Admin (mobile) */}
+            {!loading && isLogin && isAdmin && (
+              <>
+                <li>
+                  <NavLink
+                    to="/admin/pending"
+                    onClick={() => setOpen(false)}
+                    className={({ isActive }) =>
+                      `block ${linkClasses} ${
+                        isActive ? activeClasses : "hover:bg-slate-700"
+                      }`
+                    }
+                  >
+                    Admin
+                  </NavLink>
+                </li>
+                
+              </>
+            )}
+
             {isLogin ? (
               <>
+                <li>
+                  <NavLink
+                    to="/places/new"
+                    onClick={() => setOpen(false)}
+                    className={({ isActive }) =>
+                      `block ${linkClasses} ${
+                        isActive ? activeClasses : "hover:bg-slate-700"
+                      }`
+                    }
+                  >
+                    Add Place
+                  </NavLink>
+                </li>
                 <li>
                   <NavLink
                     to="/profile"
@@ -105,21 +166,19 @@ export default function NavBar({ isLogin }: NavBarProps) {
                       }`
                     }
                   >
-                    Profile
+                    {me?.name || me?.email || "Profile"}
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink
-                    to="/logout"
-                    onClick={() => setOpen(false)}
-                    className={({ isActive }) =>
-                      `block ${linkClasses} ${
-                        isActive ? activeClasses : "hover:bg-slate-700"
-                      }`
-                    }
+                  <button
+                    onClick={() => {
+                      setOpen(false);
+                      handleLogout();
+                    }}
+                    className={`block w-full text-left ${linkClasses} hover:bg-slate-700`}
                   >
                     Logout
-                  </NavLink>
+                  </button>
                 </li>
               </>
             ) : (
