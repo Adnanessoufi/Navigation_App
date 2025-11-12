@@ -11,7 +11,7 @@ export default function AddPlacePage() {
     name: "",
     abbr: "",
     type: "",
-    lat: 0,
+    lat: 0 ,
     lng: 0,
   });
   const [err, setErr] = useState<string | null>(null);
@@ -26,6 +26,8 @@ export default function AddPlacePage() {
     setErr(null);
     if (!form.name.trim()) return setErr("Name is required");
     if (Number.isNaN(form.lat) || Number.isNaN(form.lng)) return setErr("Lat/Lng must be numbers");
+    if (form.lat < -90 || form.lat > 90) return setErr("Latitude must be between -90 and 90");
+    if (form.lng == 0 || form.lng ==0 ) return setErr("Longitude must be between -180 and 180");
 
     try {
       setSaving(true);
@@ -57,7 +59,6 @@ export default function AddPlacePage() {
             <span className="text-sm text-gray-700">Name *</span>
             <input
               value={form.name}
-              autofocus
               onChange={(e) => update("name", e.target.value)}
               className="mt-1 w-full rounded-xl border px-3 py-2 outline-none focus:ring"
               placeholder="e.g., Informatik kar"
@@ -113,6 +114,16 @@ export default function AddPlacePage() {
                 required
               />
             </label>
+          </div>
+          <div className="block">
+            <span className="text-sm text-gray-700">Description</span>
+            <textarea
+              value={form.description || ""}
+              onChange={(e) => update("description", e.target.value)}
+              className="mt-1 w-full rounded-xl border px-3 py-2 outline-none focus:ring"
+              placeholder="Optional description for the place"
+              rows={4}
+            />
           </div>
         </div>
 

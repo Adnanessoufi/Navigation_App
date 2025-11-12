@@ -1,8 +1,6 @@
 import axios from "axios";
 axios.defaults.withCredentials = true;
 
-const API = ""; 
-
 export type Item = {
   id: string;   
   name: string;
@@ -10,6 +8,8 @@ export type Item = {
   type?: string;
   lat: number;
   lng: number;
+  description?: string;
+ 
 };
 
 export type NewPlace = {
@@ -18,14 +18,17 @@ export type NewPlace = {
   type?: string;
   lat: number;
   lng: number;
+  description?: string;
 };
 
-export async function searchPlaces(q: string): Promise<Item[]> {
-  const res = await fetch(`${API}/api/search?q=${encodeURIComponent(q)}`, {
-    credentials: "include", 
-  });
+// api/search.ts
+export async function searchPlaces(q: string, types?: string[]) {
+  const params = new URLSearchParams();
+  if (q) params.set("q", q);
+  if (types?.length) params.set("types", types.join(","));
+  const res = await fetch(`/api/search?${params.toString()}`, { credentials: "include" });
   if (!res.ok) throw new Error("Search request failed");
-  const data: { q: string; count: number; results: Item[] } = await res.json();
+  const data = await res.json();
   return data.results;
 }
 

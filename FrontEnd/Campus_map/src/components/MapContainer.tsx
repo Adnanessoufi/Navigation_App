@@ -25,12 +25,12 @@ export default function MapContainer({lat,lng}: {lat?:number;lng?:number}) {
 
     if (!isLoaded) return <div>Loading...</div>;
     return (
-        <div className="h-[calc(100vh-64px-32px)] w-full rounded-2xl shadow-sm overflow-hidden">
+        <div className="h-full w-full shadow-sm overflow-hidden">
             <GoogleMap
                 zoom={15}
                 key={`${center.lat},${center.lng}`}
                 center={center}
-                mapContainerClassName="w-3/5 h-3/5 mx-auto rounded-2xl m-10"
+                mapContainerClassName="w-5/5 h-5/5 mx-auto  "
                 options={options}
             >
               {lat && lng && (

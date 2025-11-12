@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, Link } from "react-router-dom";
-import handleLogout from "./Logout";
+import handleLogout from "./Registration/Logout";
 import { useMe } from "../hooks/useMe";
 
 type NavBarProps = {
@@ -55,11 +55,15 @@ export default function NavBar({ isLogin }: NavBarProps) {
                   </NavLink>
                 </li>
                 <li>
-                  <NavLink to="/admin/users" className={({ isActive }) => `${linkClasses} ${isActive ? activeClasses : ""}`}>
+                  <NavLink
+                    to="/admin/users"
+                    className={({ isActive }) =>
+                      `${linkClasses} ${isActive ? activeClasses : ""}`
+                    }
+                  >
                     Users
                   </NavLink>
                 </li>
-                
               </>
             )}
 
@@ -73,6 +77,16 @@ export default function NavBar({ isLogin }: NavBarProps) {
                     }
                   >
                     Add Place
+                  </NavLink>
+                </li>
+                <li> 
+                  <NavLink
+                    to="/favorites"
+                    className={({ isActive }) =>
+                      `${linkClasses} ${isActive ? activeClasses : ""}`
+                    }
+                  >
+                    Favorites
                   </NavLink>
                 </li>
                 <li>
@@ -137,7 +151,6 @@ export default function NavBar({ isLogin }: NavBarProps) {
                     Admin
                   </NavLink>
                 </li>
-                
               </>
             )}
 

@@ -2,10 +2,12 @@ import { Router } from "express";
 import { prisma } from "../lib/prisma";
 import requireAuth from "../middleware/authRouter";
 import requireAdmin from "../middleware/requireAdmin";
+import { Prisma, PlaceStatus } from "../generated/prisma";
 
 const router = Router();
 
 router.use(requireAuth, requireAdmin);
+
 
 
 router.get("/places/pending", async (req, res) => {
@@ -14,17 +16,17 @@ router.get("/places/pending", async (req, res) => {
     const skip = Math.max(0, Number(req.query.skip) || 0);
     const take = Math.min(Math.max(1, Number(req.query.take) || 50), 100);
 
-    const where = {
-      status: "PENDING" as const,
-      ...(qRaw
-        ? {
-            OR: [
-              { name: { contains: qRaw, mode: "insensitive" } },
-              { abbr: { contains: qRaw, mode: "insensitive" } },
-            ],
-          }
-        : {}),
-    };
+   const where: Prisma.PlaceWhereInput = {
+  status: PlaceStatus.PENDING,
+  ...(qRaw
+    ? {
+        OR: [
+          { name: { contains: qRaw, mode: Prisma.QueryMode.insensitive } },
+          { abbr: { contains: qRaw, mode: Prisma.QueryMode.insensitive } },
+        ],
+      }
+    : {}),
+};
 
     const [items, total] = await Promise.all([
       prisma.place.findMany({
@@ -133,11 +135,11 @@ router.get("/users", async (req, res) => {
     const skip = Math.max(0, Number(req.query.skip) || 0);
     const take = Math.min(Math.max(1, Number(req.query.take) || 50), 100);
 
-    const where = qRaw
+    const where: Prisma.UserWhereInput = qRaw
       ? {
           OR: [
-            { name: { contains: qRaw, mode: "insensitive" } },
-            { email: { contains: qRaw, mode: "insensitive" } },
+            { name:  { contains: qRaw, mode: Prisma.QueryMode.insensitive } },
+            { email: { contains: qRaw, mode: Prisma.QueryMode.insensitive } },
           ],
         }
       : {};

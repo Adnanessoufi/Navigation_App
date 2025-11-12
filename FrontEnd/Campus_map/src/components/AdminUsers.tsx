@@ -50,7 +50,6 @@ export default function AdminUsers() {
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [skip]);
 
   const onSearch = async () => {
@@ -91,7 +90,6 @@ export default function AdminUsers() {
 
   useEffect(() => {
     if (viewUserId) loadUserPlaces(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewSkip, viewUserId, viewStatus]);
 
   const openView = (userId: string) => {

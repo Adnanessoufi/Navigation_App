@@ -32,24 +32,56 @@ model Place {
   lng          Float
   abbr         String?
   type         String?
+  description  String? @db.Text
   favoredBy    Favorite[]
-
-  // TEMP: treat existing rows as approved
   status       PlaceStatus  @default(APPROVED)
-
-  // TEMP: nullable so migration can succeed
   createdById  String
   createdBy    User?        @relation("PlacesCreated", fields: [createdById], references: [id])
-
   approvedById String?
   approvedBy   User?        @relation("PlacesApproved", fields: [approvedById], references: [id])
   approvedAt   DateTime?
-
   @@index([status])
   @@index([createdById])
-  @@index([approvedById])
+  @@index([approvedById]) 
+  photos       PlacePhoto[]
+  reviews Review[]
 }
 
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int       // 1–5 stars
+  comment   String
+  createdAt DateTime  @default(now())
+
+  // Relations
+  userId    String
+  placeId   String
+  user      User      @relation(fields: [userId], references: [id])
+  place     Place     @relation(fields: [placeId], references: [id])
+}
+
+
+model PlacePhoto {
+  id           String      @id @default(uuid())
+  placeId      String
+  place        Place       @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  url          String
+  publicId     String?     // Cloudinary public_id for deletions or transformations
+  caption      String?     
+  isPrimary    Boolean     @default(false)
+  order        Int?        
+  status       PhotoStatus @default(APPROVED)
+  createdById  String?
+  createdBy    User?       @relation(fields: [createdById], references: [id])
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+enum PhotoStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
 
 model User {
   id String @id @default(uuid())
@@ -60,6 +92,10 @@ model User {
   role   Role  @default(USER) 
   placesCreated   Place[]        @relation("PlacesCreated")
   placesApproved Place[] @relation("PlacesApproved")
+
+  PlacePhoto PlacePhoto[]
+
+  reviews Review[]
 }
 
 model Favorite {

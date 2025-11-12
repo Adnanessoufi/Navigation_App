@@ -1,7 +1,9 @@
+import {  useNavigate } from "react-router-dom";
 import { useFavorites } from "../hooks/useFavorites";
 
 export default function FavoritesPage() {
   const { favorites, loading } = useFavorites();
+  const navigate = useNavigate(); 
 
   if (loading) return <div className="p-4">Loading favorites…</div>;
 
@@ -24,9 +26,7 @@ export default function FavoritesPage() {
 
           <button
             className="mt-2 underline text-green-700"
-            onClick={() =>
-              window.dispatchEvent(new CustomEvent("focus-place", { detail: p }))
-            }
+            onClick={() => navigate(`/search?q=${encodeURIComponent(p.name)}`)} 
           >
             View on map
           </button>

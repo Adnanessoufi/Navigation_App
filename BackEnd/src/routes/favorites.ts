@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 
 
 interface AuthReq extends Request {
-  user?: { id: string };
+  user?: { id: string; role: "ADMIN" | "USER";};
 }
 
 const COOKIE_NAME = "auth";
@@ -19,8 +19,8 @@ function requireAuth(req: AuthReq, res: Response, next: NextFunction) {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { uid: string };
-    req.user = { id: decoded.uid }; // match how token was created in authRouter
+    const decoded = jwt.verify(token, JWT_SECRET) as { uid: string, role: "ADMIN" | "USER"; };
+    req.user = { id: decoded.uid, role: decoded.role };
     next();
   } catch {
     return res.status(401).json({ message: "Invalid or expired token" });

@@ -9,6 +9,8 @@ import suggestsRouter from "./routes/suggest";
 import cookieParser from "cookie-parser";
 import adminRouter from "./routes/admin"
 import meRouter from "./routes/me"
+import photosRouter from "./routes/photos";
+import reviewsRouter from "./routes/reviews";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -27,6 +29,8 @@ app.use("/api/favorites", favoriteRouter);
 app.use("/api/suggest", suggestsRouter);
 app.use("/api/admin",adminRouter);
 app.use("/api/me",meRouter);
+app.use("/api/places", photosRouter);
+app.use("/api/reviews", reviewsRouter);
 
 app.get("/", (req, res) => {
   res.send({ status: "OK", message: "Backend is running" });

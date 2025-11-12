@@ -1,3 +1,10 @@
+// types.ts (or alongside the file)
+export const PLACE_STATUSES = ["PENDING","APPROVED","REJECTED"] as const;
+export type PlaceStatus = typeof PLACE_STATUSES[number];
+
+export const ROLES = ["USER","ADMIN"] as const;
+export type Role = typeof ROLES[number];
+
 export type UserPlace = {
   id: string;
   name: string;
@@ -5,14 +12,14 @@ export type UserPlace = {
   type?: string | null;
   lat: number;
   lng: number;
-  status: "PENDING" | "APPROVED" | "REJECTED";
+  status: PlaceStatus;
 };
 
 export type AdminUserRow = {
   id: string;
   name: string;
   email: string;
-  role: "USER" | "ADMIN";
+  role: Role;
   totalPlaces: number;
 };
 
@@ -23,9 +30,30 @@ type ListResponse = {
   results: AdminUserRow[];
 };
 
+// --- fetch helpers ---
+
+function makeController(ms = 15000) {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), ms);
+  return { signal: ctrl.signal, done: () => clearTimeout(id) };
+}
+
+async function asJson<T>(res: Response): Promise<T> {
+  if (res.status === 401) throw new Error("Please log in.");
+  if (res.status === 403) throw new Error("Admin only.");
+  if (!res.ok) {
+    let msg = `HTTP ${res.status}`;
+    try { msg = (await res.json())?.error || msg; } catch {}
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
+// --- API calls ---
+
 export async function listUserPlaces(
   userId: string,
-  status?: "PENDING" | "APPROVED" | "REJECTED",
+  status?: PlaceStatus,
   skip = 0,
   take = 20
 ) {
@@ -34,31 +62,22 @@ export async function listUserPlaces(
   url.searchParams.set("skip", String(skip));
   url.searchParams.set("take", String(take));
 
-  const res = await fetch(url.toString().replace(window.location.origin, ""), {
-    credentials: "include",
-  });
-  if (res.status === 401) throw new Error("Please log in.");
-  if (res.status === 403) throw new Error("Admin only.");
-  if (!res.ok) throw new Error((await res.json().catch(() => null))?.error || `HTTP ${res.status}`);
-  return res.json() as Promise<{
-    total: number;
-    skip: number;
-    take: number;
-    byStatus: { PENDING: number; APPROVED: number; REJECTED: number };
-    results: UserPlace[];
-  }>;
-}
-
-
-async function asJson<T>(res: Response): Promise<T> {
-  if (res.status === 401) throw new Error("Please log in.");
-  if (res.status === 403) throw new Error("Admin only.");
-  if (!res.ok) {
-    let msg = `HTTP ${res.status}`;
-    try { const j = await res.json(); msg = j?.error || msg; } catch {}
-    throw new Error(msg);
+  const t = makeController();
+  try {
+    const res = await fetch(url.pathname + url.search, {
+      credentials: "include",
+      signal: t.signal,
+    });
+    return asJson<{
+      total: number;
+      skip: number;
+      take: number;
+      byStatus: { PENDING: number; APPROVED: number; REJECTED: number };
+      results: UserPlace[];
+    }>(res);
+  } finally {
+    t.done();
   }
-  return res.json();
 }
 
 export async function listUsers(q = "", skip = 0, take = 20) {
@@ -66,19 +85,31 @@ export async function listUsers(q = "", skip = 0, take = 20) {
   if (q) url.searchParams.set("q", q);
   url.searchParams.set("skip", String(skip));
   url.searchParams.set("take", String(take));
-  const res = await fetch(url.toString().replace(window.location.origin, ""), {
-    credentials: "include",
-  });
-  return asJson<ListResponse>(res);
+
+  const t = makeController();
+  try {
+    const res = await fetch(url.pathname + url.search, {
+      credentials: "include",
+      signal: t.signal,
+    });
+    return asJson<ListResponse>(res);
+  } finally {
+    t.done();
+  }
 }
 
 export async function makeAdmin(id: string) {
-  const res = await fetch(`/api/admin/users/${id}/make-admin`, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: "{}",
-  });
-  return asJson<{ id: string; role: "USER" | "ADMIN"; changed: boolean }>(res);
+  const t = makeController();
+  try {
+    const res = await fetch(`/api/admin/users/${id}/make-admin`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: "{}", // idempotent
+      signal: t.signal,
+    });
+    return asJson<{ id: string; role: Role; changed: boolean }>(res);
+  } finally {
+    t.done();
+  }
 }
-

@@ -21,7 +21,7 @@ router.get("/", async (req, res) => {
       },
       orderBy: { abbr: "asc" }, 
       take: limit,
-      select: { id: true, name: true, abbr: true, lat: true, lng: true },
+      select: { id: true, name: true, abbr: true, lat: true, lng: true, description: true },
     });
 
     res.json({ q: qRaw, count: results.length, results });

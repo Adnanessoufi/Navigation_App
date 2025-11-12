@@ -1,4 +1,4 @@
-export type Me = { id: string; name: string; email: string; role: "USER" | "ADMIN" };
+export type Me = { id: string; name: string; email: string; role?: "USER" | "ADMIN", isAdmin?: boolean };
 
 export async function getMe(): Promise<Me> {
   const res = await fetch("/api/me", { credentials: "include" });
