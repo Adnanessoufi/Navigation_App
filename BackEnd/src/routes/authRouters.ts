@@ -1,22 +1,25 @@
-import express, { Request, Response, NextFunction } from "express";
+import express, { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt, { SignOptions } from "jsonwebtoken";
 import cookieParser from "cookie-parser";
-import requireAuth from "../middleware/authRouter";
+import requireAuth, { AuthRequest } from "../middleware/authRouter";
 
 const router = express.Router();
 
 const COOKIE_NAME = "auth";
 const isProd = process.env.NODE_ENV === "production";
-const JWT_SECRET = process.env.JWT_SECRET!;
 const JWT_EXPIRES: SignOptions["expiresIn"] =
-  (process.env.JWT_EXPIRES as unknown as SignOptions["expiresIn"]) || "1d";
+  (process.env.JWT_EXPIRES as SignOptions["expiresIn"]) || "1d";
 
 router.use(cookieParser());
 
-interface AuthRequest extends Request {
-  userId?: string;
+function getJwtSecret() {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET is not configured");
+  }
+  return secret;
 }
 
 function setAuthCookie(res: Response, token: string) {
@@ -45,20 +48,23 @@ router.post("/register", async (req: Request, res: Response) => {
       email: string;
       password: string;
     };
+
     if (!username || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
+
     email = String(email).trim().toLowerCase();
     username = String(username).trim();
 
-    const ExistedUser = await prisma.user.findUnique({ where: { email } });
-    if (ExistedUser) {
-      return res.status(400).json({ message: "Email already exists" });
-    }
     if (password.length < 8) {
       return res
         .status(400)
         .json({ message: "Password must be at least 8 characters long" });
+    }
+
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already exists" });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -68,16 +74,25 @@ router.post("/register", async (req: Request, res: Response) => {
         name: username,
         passwordHash,
       },
-      select: { id: true, email: true, name: true },
+      select: { id: true, email: true, name: true, role: true },
     });
-    const token = jwt.sign({ uid: newUser.id }, JWT_SECRET as string, {
-      expiresIn: JWT_EXPIRES,
-    });
+
+    const token = jwt.sign(
+      { uid: newUser.id, role: newUser.role },
+      getJwtSecret(),
+      { expiresIn: JWT_EXPIRES },
+    );
+
     setAuthCookie(res, token);
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "User registered successfully",
-      user: { id: newUser.id, username: newUser.name, email: newUser.email },
+      user: {
+        id: newUser.id,
+        username: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+      },
     });
   } catch (error) {
     console.error("Error during registration:", error);
@@ -89,50 +104,62 @@ router.get("/profile", requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
-      select: { id: true, email: true, name: true }
+      select: { id: true, email: true, name: true, role: true },
     });
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    res.json(user);
+
+    return res.json(user);
   } catch (error) {
     console.error("Error fetching profile:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
 
-router.post("/logout", (req: Request, res: Response) => {
+router.post("/logout", (_req: Request, res: Response) => {
   clearAuthCookie(res);
-  res.json({ message: "Logged out successfully" });
+  return res.json({ message: "Logged out successfully" });
 });
 
 router.post("/login", async (req: Request, res: Response) => {
   try {
     let { email, password } = req.body as { email: string; password: string };
+
     if (!email || !password) {
       return res
         .status(400)
         .json({ message: "Email and password are required" });
     }
+
     email = email.trim().toLowerCase();
-    password = password.trim();
+
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return res
-        .status(401)
-        .json({ message: "Email not found, Please Try again" });
-    }
-    const ok = await bcrypt.compare(password, user.passwordHash);
-    if (!ok) {
-      return res.status(401).json({ message: "Invalid password" });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    const token = jwt.sign({ uid: user.id, role: user.role }, JWT_SECRET, {
-      expiresIn: JWT_EXPIRES,
-    });
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    if (!ok) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    const token = jwt.sign(
+      { uid: user.id, role: user.role },
+      getJwtSecret(),
+      { expiresIn: JWT_EXPIRES },
+    );
+
     setAuthCookie(res, token);
-    res.json({
-      user: { id: user.id, username: user.name, email: user.email },
+
+    return res.json({
+      user: {
+        id: user.id,
+        username: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (error) {
     console.error("Error during login:", error);
