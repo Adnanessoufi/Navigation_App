@@ -1,12 +1,12 @@
-import type { Request, Response, NextFunction } from "express";
+import type { Response, NextFunction } from "express";
+import type { AuthRequest } from "./authRouter";
 
-function requireAdmin(req: Request, res: Response, next: NextFunction) {
-  const role = req.role ?? req.user?.role;   
-  console.log("requireAdmin:   reqRole", role);
-  if (role !== "ADMIN") {
+function requireAdmin(req: AuthRequest, res: Response, next: NextFunction) {
+  if (req.role !== "ADMIN") {
     return res.status(403).json({ error: "Admin only" });
   }
-  next();
+
+  return next();
 }
 
 export default requireAdmin;
