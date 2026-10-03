@@ -2,7 +2,7 @@
 
 This is the backend of my University Campus Navigation App.
 
-I used Node.js, Express, TypeScript, Prisma and PostgreSQL.
+I used Node.js, Express, TypeScript, Prisma and PostgreSQL. The API starts from `src/server.ts`.
 
 The backend handles:
 
