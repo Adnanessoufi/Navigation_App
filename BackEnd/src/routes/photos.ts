@@ -1,18 +1,16 @@
-import { Router } from "express";
+import { Router, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { cloudinary } from "../lib/cloudinary";
+import requireAuth from "../middleware/authRouter";
+import type { AuthRequest } from "../middleware/authRouter";
 
 const router = Router();
 
-// GET /api/places/:placeId/photos
 router.get("/:placeId/photos", async (req, res) => {
   try {
     const { placeId } = req.params;
     const photos = await prisma.placePhoto.findMany({
-      where: {
-        placeId,
-        status: "APPROVED", 
-      },
+      where: { placeId, status: "APPROVED" },
       orderBy: { order: "asc" },
       select: {
         id: true,
@@ -22,83 +20,100 @@ router.get("/:placeId/photos", async (req, res) => {
         order: true,
       },
     });
-    res.json(photos);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to fetch photos" });
+
+    return res.json(photos);
+  } catch (error) {
+    console.error("GET place photos error", error);
+    return res.status(500).json({ error: "Failed to fetch photos" });
   }
 });
 
-router.post("/:placeId/photos/sign", /* requireAuth, */ async (req, res) => {
-  try {
-    const { placeId } = req.params;
+router.post(
+  "/:placeId/photos/sign",
+  requireAuth,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { placeId } = req.params;
+      const timestamp = Math.round(Date.now() / 1000);
+      const folder = `nav_a/places/${placeId}`;
+      const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
-    const folder = `nav_a/places/${placeId}`;
+      if (!apiSecret) {
+        return res.status(500).json({ error: "Cloudinary is not configured" });
+      }
 
-    const timestamp = Math.round(Date.now() / 1000);
+      const signature = cloudinary.utils.api_sign_request(
+        { timestamp, folder },
+        apiSecret,
+      );
 
-    const paramsToSign = { timestamp, folder };
+      return res.json({
+        signature,
+        timestamp,
+        folder,
+        cloudName: cloudinary.config().cloud_name,
+        apiKey: cloudinary.config().api_key,
+      });
+    } catch (error) {
+      console.error("Create upload signature error", error);
+      return res.status(500).json({ error: "Failed to create upload signature" });
+    }
+  },
+);
 
-    const signature = cloudinary.utils.api_sign_request(
-      paramsToSign,
-      process.env.CLOUDINARY_API_SECRET as string
-    );
+router.post(
+  "/:placeId/photos",
+  requireAuth,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { placeId } = req.params;
+      const { url, publicId, caption } = req.body || {};
 
-    res.json({
-      signature,
-      timestamp,
-      folder,
-      cloudName: cloudinary.config().cloud_name || "Hi",
-      apiKey: cloudinary.config().api_key || "Hello",
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to create upload signature" });
-  }
-});
+      if (!url || typeof url !== "string") {
+        return res.status(400).json({ error: "url is required" });
+      }
 
-router.post("/:placeId/photos", async (req, res) => {
-  try {
-    const { placeId } = req.params;
-    const { url, publicId, caption } = req.body || {};
+      const count = await prisma.placePhoto.count({ where: { placeId } });
+      const isPrimary = count === 0;
 
-    if (!url) return res.status(400).json({ error: "url is required" });
+      const photo = await prisma.placePhoto.create({
+        data: {
+          placeId,
+          url,
+          publicId: publicId || null,
+          caption: caption || null,
+          isPrimary,
+          status: "APPROVED",
+          createdById: req.userId,
+        },
+        select: { id: true, url: true, isPrimary: true, caption: true },
+      });
 
-    // Make the first photo primary automatically (nice UX)
-    const count = await prisma.placePhoto.count({ where: { placeId } });
-    const isPrimary = count === 0;
-
-    const photo = await prisma.placePhoto.create({
-      data: {
-        placeId,
-        url,
-        publicId,
-        caption,
-        isPrimary,
-        status: "APPROVED", // change to PENDING if you want moderation
-      },
-      select: { id: true, url: true, isPrimary: true, caption: true },
-    });
-
-    res.status(201).json(photo);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to save photo" });
-  }
-});
+      return res.status(201).json(photo);
+    } catch (error) {
+      console.error("Save photo error", error);
+      return res.status(500).json({ error: "Failed to save photo" });
+    }
+  },
+);
 
 router.get("/:placeId/primaryPhoto", async (req, res) => {
   try {
     const { placeId } = req.params;
     const photo = await prisma.placePhoto.findFirst({
       where: { placeId, status: "APPROVED" },
-      orderBy: [{ isPrimary: "desc" }, { order: "asc" }, { createdAt: "asc" }],
+      orderBy: [
+        { isPrimary: "desc" },
+        { order: "asc" },
+        { createdAt: "asc" },
+      ],
       select: { id: true, url: true, isPrimary: true },
     });
-    res.json(photo); // can be null
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: "Failed to load primary photo" });
+
+    return res.json(photo);
+  } catch (error) {
+    console.error("GET primary photo error", error);
+    return res.status(500).json({ error: "Failed to load primary photo" });
   }
 });
 
