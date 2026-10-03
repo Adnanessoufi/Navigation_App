@@ -24,13 +24,13 @@ cp .env.example .env
 npm run dev
 ```
 
-By default, it runs on port `4000`.
+It runs on port `4000` by default.
 
 ## Database
 
 I use PostgreSQL with Prisma.
 
-Useful commands:
+Some useful commands:
 
 ```bash
 npx prisma generate

@@ -24,7 +24,7 @@ cp .env.example .env
 npm run dev
 ```
 
-Then add your Google Maps API key inside your local `.env` file.
+Add your Google Maps API key inside your local `.env` file.
 
 ```text
 VITE_GOOGLE_MAPS_API_KEY="your_google_maps_api_key"
