@@ -1,61 +1,30 @@
 # University Campus Navigation App
 
-I made this project to help students at the University of Debrecen find places around campus more easily.
+I made this project to help students at the University of Debrecen find places around the campus more easily.
 
-Sometimes students know a building or a place only by its name or abbreviation, so I wanted to make one simple app where they can search for it and see it directly on the map.
+Students sometimes know a building only by its name or abbreviation, so I wanted to make one place where they can search for it and see it directly on the map.
 
-## What I added
+## What it does
 
-- Search places by name or abbreviation
+- Search for places by name or abbreviation
 - Filter places by category
-- Show places on Google Maps
-- Register and log in
+- Show the place on Google Maps
+- Create an account and log in
 - Save favorite places
 - Add reviews and ratings
-- Upload photos for places
+- Upload photos
 - Add new places
-- Admin approval for new places
-- Admin user management
+- Admin can approve new places and manage users
 
 ## Technologies I used
 
-### Frontend
+For the frontend, I used React, TypeScript, Vite, Tailwind CSS, React Router, Axios and Google Maps API.
 
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-- React Router
-- Axios
-- Google Maps API
-
-### Backend
-
-- Node.js
-- Express
-- TypeScript
-- Prisma
-- PostgreSQL
-- JWT
-- bcrypt
-- Cloudinary
-
-## Project structure
-
-```text
-Navigation_App/
-├── BackEnd/
-│   ├── prisma/
-│   └── src/
-└── FrontEnd/
-    └── Campus_map/
-        ├── public/
-        └── src/
-```
+For the backend, I used Node.js, Express, TypeScript, Prisma, PostgreSQL, JWT, bcrypt and Cloudinary.
 
 ## How to run it
 
-### Backend
+Backend:
 
 ```bash
 cd BackEnd
@@ -64,9 +33,7 @@ cp .env.example .env
 npm run dev
 ```
 
-### Frontend
-
-Open another terminal:
+Frontend:
 
 ```bash
 cd FrontEnd/Campus_map
@@ -75,26 +42,17 @@ cp .env.example .env
 npm run dev
 ```
 
-The frontend runs on port `5173` and sends API requests to the backend on port `4000`.
+The frontend runs on port `5173` and the backend runs on port `4000`.
 
-## Environment variables
+## API keys and environment variables
 
-I do not keep real API keys or secrets inside the repository.
+I keep the real API keys and secrets in local `.env` files, so they are not uploaded to GitHub.
 
-For the backend, copy:
+I added these two example files only to show what values are needed:
 
 ```text
 BackEnd/.env.example
-```
-
-For the frontend, copy:
-
-```text
 FrontEnd/Campus_map/.env.example
 ```
 
-Then add your own values.
-
-## Current status
-
-The main functions of the project are working. I still want to improve deployment and testing later.
+Create a `.env` file in the same folder and add your own values there.
