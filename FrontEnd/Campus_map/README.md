@@ -2,7 +2,7 @@
 
 This is the frontend of my University Campus Navigation App.
 
-I used React, TypeScript, Vite and Tailwind CSS.
+I used React, TypeScript, Vite and Tailwind CSS. The main frontend code is inside `src/`.
 
 The frontend includes:
 
