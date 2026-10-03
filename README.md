@@ -1,26 +1,27 @@
 # University Campus Navigation App
 
-A full-stack web application that helps students find places around the University of Debrecen campus.
+I made this project to help students at the University of Debrecen find places around campus more easily.
 
-The app supports searchable campus locations, an interactive Google Map, user accounts, favorites, reviews, place photos, user-submitted locations, and an admin approval workflow.
+Sometimes students know a building or a place only by its name or abbreviation, so I wanted to make one simple app where they can search for it and see it directly on the map.
 
-## Main features
+## What I added
 
-- Search campus places by name or abbreviation
+- Search places by name or abbreviation
 - Filter places by category
-- View places on Google Maps
-- Register and log in with cookie-based JWT authentication
-- Save favorite locations
+- Show places on Google Maps
+- Register and log in
+- Save favorite places
 - Add reviews and ratings
-- Upload and display place photos
-- Submit new places
-- Admin moderation for submitted places
+- Upload photos for places
+- Add new places
+- Admin approval for new places
 - Admin user management
 
-## Tech stack
+## Technologies I used
 
 ### Frontend
-- React 19
+
+- React
 - TypeScript
 - Vite
 - Tailwind CSS
@@ -29,10 +30,11 @@ The app supports searchable campus locations, an interactive Google Map, user ac
 - Google Maps API
 
 ### Backend
+
 - Node.js
 - Express
 - TypeScript
-- Prisma ORM
+- Prisma
 - PostgreSQL
 - JWT
 - bcrypt
@@ -44,25 +46,14 @@ The app supports searchable campus locations, an interactive Google Map, user ac
 Navigation_App/
 ├── BackEnd/
 │   ├── prisma/
-│   │   ├── migrations/
-│   │   ├── schema.prisma
-│   │   └── seed.ts
 │   └── src/
-│       ├── lib/
-│       ├── middleware/
-│       ├── routes/
-│       └── server.ts
 └── FrontEnd/
     └── Campus_map/
         ├── public/
         └── src/
-            ├── api/
-            ├── components/
-            ├── hooks/
-            └── lib/
 ```
 
-## Local development
+## How to run it
 
 ### Backend
 
@@ -84,33 +75,26 @@ cp .env.example .env
 npm run dev
 ```
 
-By default, Vite runs on port `5173` and proxies `/api` requests to the backend on port `4000`.
+The frontend runs on port `5173` and sends API requests to the backend on port `4000`.
 
 ## Environment variables
 
-Backend variables are documented in `BackEnd/.env.example`:
+I do not keep real API keys or secrets inside the repository.
 
-- `DATABASE_URL`
-- `JWT_SECRET`
-- `JWT_EXPIRES`
-- `NODE_ENV`
-- `PORT`
-- `CLIENT_ORIGIN`
-- `CLOUDINARY_CLOUD_NAME`
-- `CLOUDINARY_API_KEY`
-- `CLOUDINARY_API_SECRET`
+For the backend, copy:
 
-Frontend variables are documented in `FrontEnd/Campus_map/.env.example`:
+```text
+BackEnd/.env.example
+```
 
-- `VITE_GOOGLE_MAPS_API_KEY`
+For the frontend, copy:
 
-## Security notes
+```text
+FrontEnd/Campus_map/.env.example
+```
 
-- Real `.env` files are ignored and must not be committed.
-- Authentication tokens use HTTP-only cookies.
-- Photo upload signatures require authentication.
-- Credentials that existed in older Git history should be rotated before this repository is made public.
+Then add your own values.
 
-## Project status
+## Current status
 
-The core application is implemented. Production deployment configuration and broader automated testing are still future improvements.
+The main functions of the project are working. I still want to improve deployment and testing later.
