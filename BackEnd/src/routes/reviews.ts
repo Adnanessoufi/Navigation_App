@@ -6,9 +6,7 @@ import requireAdmin from "../middleware/requireAdmin";
 
 const router = Router();
 
-// POST /reviews  → Add a review
-router.post("/", requireAuth ,async (req: AuthRequest, res: Response) => {
-  console.log("Received review submission:", req.body);
+router.post("/", requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const { placeId, rating, comment } = req.body;
     const userId = req.userId;
@@ -16,30 +14,32 @@ router.post("/", requireAuth ,async (req: AuthRequest, res: Response) => {
     if (!userId) {
       return res.status(401).json({ error: "User not authenticated" });
     }
-    if (!placeId ) {
-      return res.status(400).json({ error: "Missing fields" });
+
+    if (!placeId) {
+      return res.status(400).json({ error: "placeId is required" });
     }
 
-
-    if (!rating ) {
-      return res.status(400).json({ error: "Please select a star rating." });
+    const numericRating = Number(rating);
+    if (!Number.isInteger(numericRating) || numericRating < 1 || numericRating > 5) {
+      return res.status(400).json({ error: "Rating must be between 1 and 5" });
     }
 
     const review = await prisma.review.create({
       data: {
-        placeId: String(placeId), rating: Number(rating),
-        comment: String(comment), userId,
+        placeId: String(placeId),
+        rating: numericRating,
+        comment: typeof comment === "string" ? comment.trim() : "",
+        userId,
       },
     });
 
-    res.json(review);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to add review" });
+    return res.status(201).json(review);
+  } catch (error) {
+    console.error("POST /api/reviews error", error);
+    return res.status(500).json({ error: "Failed to add review" });
   }
 });
 
-// GET /reviews?placeId=...
 router.get("/", async (req, res) => {
   try {
     const { placeId } = req.query;
@@ -53,32 +53,33 @@ router.get("/", async (req, res) => {
       orderBy: { createdAt: "desc" },
     });
 
-    res.json(reviews);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to fetch reviews" });
+    return res.json(reviews);
+  } catch (error) {
+    console.error("GET /api/reviews error", error);
+    return res.status(500).json({ error: "Failed to fetch reviews" });
   }
 });
 
-router.delete("/:id", requireAuth, (req, res, next) => { 
-  (req as any).userRole = (req as any).role;
-  next();
-}, requireAdmin, async (req, res) => {
-  const { id } = req.params;
+router.delete(
+  "/:id",
+  requireAuth,
+  requireAdmin,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const deleted = await prisma.review.delete({
+        where: { id: req.params.id },
+      });
 
-  try {
-    const deleted = await prisma.review.delete({
-      where: { id },
-    });
+      return res.json({ ok: true, review: deleted });
+    } catch (error: any) {
+      if (error?.code === "P2025") {
+        return res.status(404).json({ error: "Review not found" });
+      }
 
-    return res.json({ ok: true, review: deleted });
-  } catch (err: any) {
-    if (err?.code === "P2025") {
-      return res.status(404).json({ error: "Review not found" });
+      console.error("DELETE /api/reviews/:id error", error);
+      return res.status(500).json({ error: "Failed to delete review" });
     }
-    console.error("DELETE /reviews/:id error:", err);
-    return res.status(500).json({ error: "Failed to delete review" });
-  }
-});
+  },
+);
 
 export default router;

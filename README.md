@@ -1,17 +1,21 @@
 # University Campus Navigation App
 
-A full-stack campus navigation application developed for students at the University of Debrecen. The project helps users find campus places by name or abbreviation and view location information on an interactive map.
+A full-stack web application that helps students find places around the University of Debrecen campus.
 
-## Features
+The app supports searchable campus locations, an interactive Google Map, user accounts, favorites, reviews, place photos, user-submitted locations, and an admin approval workflow.
 
-- Searchable campus places and abbreviations
-- Google Maps integration
-- User accounts and authentication
-- Favorites
-- Reviews and ratings
-- Place photos
-- User-submitted places with approval status
-- Admin approval workflow
+## Main features
+
+- Search campus places by name or abbreviation
+- Filter places by category
+- View places on Google Maps
+- Register and log in with cookie-based JWT authentication
+- Save favorite locations
+- Add reviews and ratings
+- Upload and display place photos
+- Submit new places
+- Admin moderation for submitted places
+- Admin user management
 
 ## Tech stack
 
@@ -21,8 +25,8 @@ A full-stack campus navigation application developed for students at the Univers
 - Vite
 - Tailwind CSS
 - React Router
-- Google Maps API
 - Axios
+- Google Maps API
 
 ### Backend
 - Node.js
@@ -30,7 +34,8 @@ A full-stack campus navigation application developed for students at the Univers
 - TypeScript
 - Prisma ORM
 - PostgreSQL
-- JWT authentication
+- JWT
+- bcrypt
 - Cloudinary
 
 ## Project structure
@@ -39,14 +44,25 @@ A full-stack campus navigation application developed for students at the Univers
 Navigation_App/
 ├── BackEnd/
 │   ├── prisma/
+│   │   ├── migrations/
+│   │   ├── schema.prisma
+│   │   └── seed.ts
 │   └── src/
+│       ├── lib/
+│       ├── middleware/
+│       ├── routes/
+│       └── server.ts
 └── FrontEnd/
     └── Campus_map/
         ├── public/
         └── src/
+            ├── api/
+            ├── components/
+            ├── hooks/
+            └── lib/
 ```
 
-## Local setup
+## Local development
 
 ### Backend
 
@@ -57,9 +73,9 @@ cp .env.example .env
 npm run dev
 ```
 
-Configure the values in `.env` before starting the server.
-
 ### Frontend
+
+Open another terminal:
 
 ```bash
 cd FrontEnd/Campus_map
@@ -68,10 +84,33 @@ cp .env.example .env
 npm run dev
 ```
 
+By default, Vite runs on port `5173` and proxies `/api` requests to the backend on port `4000`.
+
 ## Environment variables
 
-Secrets and local environment files are intentionally excluded from Git. Use the provided `.env.example` files as templates.
+Backend variables are documented in `BackEnd/.env.example`:
 
-## Purpose
+- `DATABASE_URL`
+- `JWT_SECRET`
+- `JWT_EXPIRES`
+- `NODE_ENV`
+- `PORT`
+- `CLIENT_ORIGIN`
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
 
-This project was created to reduce the confusion students can face when navigating a large university campus, especially when buildings and locations are commonly referenced by abbreviations.
+Frontend variables are documented in `FrontEnd/Campus_map/.env.example`:
+
+- `VITE_GOOGLE_MAPS_API_KEY`
+
+## Security notes
+
+- Real `.env` files are ignored and must not be committed.
+- Authentication tokens use HTTP-only cookies.
+- Photo upload signatures require authentication.
+- Credentials that existed in older Git history should be rotated before this repository is made public.
+
+## Project status
+
+The core application is implemented. Production deployment configuration and broader automated testing are still future improvements.
