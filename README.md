@@ -4,6 +4,8 @@ I made this project to help students at the University of Debrecen find places a
 
 Students sometimes know a building only by its name or abbreviation, so I wanted to make one place where they can search for it and see it directly on the map.
 
+I built it as a full-stack university project.
+
 ## What it does
 
 - Search for places by name or abbreviation
